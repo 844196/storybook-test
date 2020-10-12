@@ -18,6 +18,7 @@ export const ReviewStateIndicator: React.FC<ReviewStateIndicatorProps> = ({ stat
 
 const Wrapper = styled.span<ReviewStateIndicatorProps>`
   width: 20px;
+  vertical-align: text-bottom; /** Macだけ? */
   /* color: ${({ state }) => APPEARANCES[state].color}; */
   color: rgba(68, 77, 86, .6);
 `;
