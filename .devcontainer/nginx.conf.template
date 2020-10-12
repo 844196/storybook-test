@@ -1,0 +1,18 @@
+server {
+  listen 80;
+  server_name localhost;
+
+  location / {
+    root /var/www/html;
+    index index.html;
+    expires -1;
+  }
+
+  location /github {
+    rewrite /github/(.*) /$1 break;
+    proxy_pass https://github.com/;
+    proxy_set_header Host github.com;
+    add_header 'Access-Control-Allow-Origin' '*' always;
+    proxy_redirect default;
+  }
+}

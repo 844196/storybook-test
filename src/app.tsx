@@ -1,6 +1,14 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { render } from 'react-dom';
+import { ReviewStatusContainer } from './components/ecosystems/ReviewStatusContainer';
 
-const App = () => null;
+const row$ = document.getElementById('row')!;
 
-ReactDOM.render(<App />, document.getElementById('app'));
+render(
+  <ReviewStatusContainer
+    prUrl={row$.dataset.prUrl!}
+    rowDom={row$}
+    loginUsername="844196"
+  />,
+  document.getElementById('app')
+);

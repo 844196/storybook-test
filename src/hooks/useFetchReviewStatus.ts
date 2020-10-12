@@ -1,36 +1,46 @@
 import { useEffect, useState } from 'react';
 import { Review, ReviewState } from '../domain/review';
+import useFetch from 'use-http';
 
 export const useFetchReviewStatus = (prUrl: string) => {
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>();
+  const { loading, error: fetchError, data: body } = useFetch(prUrl, { credentials: 'include' }, [prUrl]);
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        const _reviews = await fetchReviewStatus(prUrl);
-        setReviews(_reviews);
-      } catch (_error) {
-        setError(_error);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [prUrl]);
+    if (fetchError) {
+      setError(fetchError);
+    }
+  }, [fetchError]);
+
+  useEffect(() => {
+    if (loading || error || !body) {
+      return;
+    }
+
+    try {
+      setReviews(() => [...parseBody(body)]);
+    } catch (e) {
+      setError(e);
+    }
+  }, [loading, error, body]);
 
   return [reviews, { loading, error }] as const;
 };
 
-const fetchReviewStatus = async (prUrl: string): Promise<Review[]> => {
-  const document$ = await fetch(prUrl, { credentials: 'include' })
-    .then((res) => res.text())
-    .then((html) => domParser.parseFromString(html, 'text/html'));
+const parseBody = (body: string): Review[] => {
+  const document$ = domParser.parseFromString(body, 'text/html');
+
+  // ドキュメント内の一番上にある .js-issue-sidebar-form (レビュワー選択フォーム) のみを取得
+  // (アサインフォーム等を取得しないようにする)
+  const form$ = document$.querySelector('.js-issue-sidebar-form');
+  if (!form$) {
+    throw new Error('レビュワー選択フォームが存在しない');
+  }
 
   const reviews: Review[] = [];
-  document$
-    .querySelectorAll<HTMLSpanElement>('.js-issue-sidebar-form [data-assignee-name]')
+  form$
+    .querySelectorAll<HTMLSpanElement>('[data-assignee-name]')
     .forEach((span$) => {
       const name = span$.dataset.assigneeName;
       if (!name) {
@@ -59,7 +69,7 @@ const domParser = new DOMParser();
 
 const OCTICON_CLASS_TO_REVIEW_STATE_MAP: { [key: string]: ReviewState } = {
   'octicon-check': 'Approved',
-  'octicon-x': 'RequestedChanges',
+  'octicon-file-diff': 'RequestedChanges',
   'octicon-comment': 'LeftComments',
-  'octicon-primitive-dot': 'Unreviewed',
+  'octicon-dot-fill': 'Unreviewed',
 };

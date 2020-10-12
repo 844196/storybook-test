@@ -1,0 +1,24 @@
+version: '3.7'
+
+services:
+  proxy:
+    image: nginx:1.19.3-alpine
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template
+      - dist:/var/www/html
+    ports:
+      - '8089:80'
+    depends_on:
+      - workspace
+  workspace:
+    image: mcr.microsoft.com/vscode/devcontainers/typescript-node:0-14
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace:cached
+      - node_modules:/workspace/node_modules
+      - dist:/workspace/dist
+    command: sleep infinity
+
+volumes:
+  node_modules:
+  dist:
