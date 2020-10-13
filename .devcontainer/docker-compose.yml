@@ -17,7 +17,7 @@ services:
       - ..:/workspace:cached
       - node_modules:/workspace/node_modules
       - dist:/workspace/dist
-    command: sleep infinity
+    tty: true
 
 volumes:
   node_modules:
